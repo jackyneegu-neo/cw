@@ -478,23 +478,31 @@ function calc(){
     riskTags.innerHTML='';
   }
 
-  /* ── MTM ── */
-  var lU=(cp-le)*lq*lv, sU=(se-cp)*sq*sv, net=lU+sU;
-  el=document.getElementById('m_long_unreal'); el.textContent=fmt(lU); setC(el,lU,true);
-  el=document.getElementById('m_short_unreal');el.textContent=fmt(sU); setC(el,sU,true);
-  el=document.getElementById('m_net');         el.textContent=fmt(net);setC(el,net,true);
-  var mc=document.getElementById('mc-net');
-  mc.style.background=net>0?'var(--pos-bg)':net<0?'var(--neg-bg)':'var(--bg3)';
-  mc.style.borderColor=net>0?'#1a6b3a':net<0?'#6b1a1a':'var(--border)';
-
-  // Top badge
+  /* ── MTM — only calculate when current price is actually entered ── */
+  var cpRaw = document.getElementById('cur_px').value;
   var badge=document.getElementById('net-badge');
-  if(cp===0||le===0){badge.textContent='—';badge.className='net-badge net-neu';}
-  else{badge.textContent=(net>=0?'+':'')+net.toFixed(2);badge.className='net-badge '+(net>0?'net-pos':net<0?'net-neg':'net-neu');}
+  var mcNet=document.getElementById('mc-net');
+  if(cpRaw===''||le===0||se===0){
+    ['m_long_unreal','m_short_unreal','m_net'].forEach(function(id){
+      var e=document.getElementById(id);if(e){e.textContent='—';e.className='mc-val c-neu';}
+    });
+    badge.textContent='—';badge.className='net-badge net-neu';
+    mcNet.style.background='var(--bg3)';mcNet.style.borderColor='var(--border)';
+  } else {
+    var lU=(cp-le)*lq*lv, sU=(se-cp)*sq*sv, net=lU+sU;
+    var el=document.getElementById('m_long_unreal'); el.textContent=fmt(lU); setC(el,lU,true);
+    el=document.getElementById('m_short_unreal');el.textContent=fmt(sU); setC(el,sU,true);
+    el=document.getElementById('m_net');         el.textContent=fmt(net);setC(el,net,true);
+    mcNet.style.background=net>0?'var(--pos-bg)':net<0?'var(--neg-bg)':'var(--bg3)';
+    mcNet.style.borderColor=net>0?'#1a6b3a':net<0?'#6b1a1a':'var(--border)';
+    badge.textContent=(net>=0?'+':'')+net.toFixed(2);
+    badge.className='net-badge '+(net>0?'net-pos':net<0?'net-neg':'net-neu');
+  }
 
-  /* ── EXIT ── */
+  /* ── EXIT — only calculate when entry prices are filled ── */
   var lExv=gv('l_exit'),sExv=gv('s_exit');
-  var lEv=lExv!==''?parseFloat(lExv):null, sEv=sExv!==''?parseFloat(sExv):null;
+  var lEv=(lExv!==''&&le>0)?parseFloat(lExv):null;
+  var sEv=(sExv!==''&&se>0)?parseFloat(sExv):null;
   var lR=lEv!==null?(lEv-le)*lq*lv:null, sR=sEv!==null?(se-sEv)*sq*sv:null;
   el=document.getElementById('l_real');
   if(lR!==null){el.textContent=fmt(lR);setC(el,lR);}else{el.textContent='—';el.className='calc-val c-neu';}
